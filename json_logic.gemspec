@@ -4,14 +4,20 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'json_logic/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'json_logic'
+  spec.name          = 'json-logic-ruby'
   spec.version       = JSONLogic::VERSION
-  spec.authors       = ['Kenneth Geerts', "Jordan Prince"]
-  spec.email         = ['Kenneth.Geerts@gmail.com', "jordanmprince@gmail.com"]
-  spec.homepage      = 'http://jsonlogic.com'
+  spec.authors       = ['Kenneth Geerts', 'Jordan Prince', 'iamzayn19']
+  spec.email         = ['Kenneth.Geerts@gmail.com', 'jordanmprince@gmail.com', 'iamzayn19@gmail.com']
+  spec.homepage      = 'https://github.com/iamzayn19/json-logic-ruby'
   spec.summary       = 'Build complex rules, serialize them as JSON, and execute them in ruby'
-  spec.description   = 'Build complex rules, serialize them as JSON, and execute them in ruby. See http://jsonlogic.com'
+  spec.description   = 'Build complex rules, serialize them as JSON, and execute them in ruby. Maintained fork of json_logic with fixes for nil/== handling, if, reduce, in, === range matching, and the transform_keys core monkey-patch. See http://jsonlogic.com'
   spec.license       = 'MIT'
+
+  spec.metadata = {
+    'source_code_uri' => 'https://github.com/iamzayn19/json-logic-ruby',
+    'bug_tracker_uri' => 'https://github.com/iamzayn19/json-logic-ruby/issues',
+    'changelog_uri'   => 'https://github.com/iamzayn19/json-logic-ruby/blob/master/CHANGELOG.md'
+  }
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|
     f.match(%r{^(test|spec|features)/})
