@@ -3,6 +3,7 @@ require 'minitest/pride'
 
 require 'json'
 require 'open-uri'
+require 'date'
 
 require 'json_logic'
 
@@ -184,6 +185,22 @@ class JSONLogicTest < Minitest::Test
 
     assert_equal ["y"], JSONLogic.apply({ "missing": [vars] }, provided_data_missing_y)
     assert_equal ["x"], JSONLogic.apply({ "missing": [vars] }, provided_data_missing_x)
+  end
+
+  def test_strict_equal_date_within_range
+    range = Date.parse('2024-01-01')..Date.parse('2024-12-31')
+    date = Date.parse('2024-07-22')
+
+    rule = { "===" => [{ "var" => "range" }, { "var" => "date" }] }
+    data = { "date" => date, "range" => range }
+
+    assert JSONLogic.apply(rule, data)
+    refute JSONLogic.apply(rule, data.merge("date" => Date.parse('2025-01-01')))
+  end
+
+  def test_strict_equal_still_strict_for_plain_values
+    refute JSONLogic.apply({ "===" => [1, "1"] }, {})
+    assert JSONLogic.apply({ "===" => [1, 1] }, {})
   end
 
   def test_in_with_non_array

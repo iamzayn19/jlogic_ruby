@@ -79,7 +79,7 @@ module JSONLogic
         nil
       end,
       '=='    => ->(v, d) { loose_equal?(v[0], v[1]) },
-      '==='   => ->(v, d) { v[0] == v[1] },
+      '==='   => ->(v, d) { v[0] === v[1] },
       '!='    => ->(v, d) { !loose_equal?(v[0], v[1]) },
       '!=='   => ->(v, d) { v[0] != v[1] },
       '!'     => ->(v, d) { v[0].falsy? },
