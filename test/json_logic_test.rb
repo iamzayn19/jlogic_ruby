@@ -79,6 +79,18 @@ class JSONLogicTest < Minitest::Test
     assert_equal(true, JSONLogic.apply(logic, data))
   end
 
+  def test_reduce_with_logic_as_initial_value
+    logic = {
+      "reduce" => [
+        { "var" => "integers" },
+        { "+" => [{ "var" => "current" }, { "var" => "accumulator" }] },
+        { "var" => "start_with" }
+      ]
+    }
+    data = { "integers" => [1, 2, 3, 4], "start_with" => 59 }
+    assert_equal(69, JSONLogic.apply(logic, data))
+  end
+
   def test_add_operation
     new_operation = ->(v, d) { v.map { |x| x + 5 } }
     JSONLogic.add_operation('fives', new_operation)
