@@ -3,12 +3,18 @@ require 'minitest/pride'
 
 require 'json'
 require 'open-uri'
+require 'date'
 
 require 'json_logic'
 
 class JSONLogicTest < Minitest::Test
-  test_suite_url = 'http://jsonlogic.com/tests.json'
-  tests = JSON.parse(open(test_suite_url).read)
+  test_suite_url = 'https://jsonlogic.com/tests.json'
+  tests = begin
+    JSON.parse(URI.open(test_suite_url).read)
+  rescue Errno::ENOENT, OpenURI::HTTPError
+    # Run a cached copy of the test suite if we can't reach the canonical version
+    JSON.parse(File.read(File.join(File.dirname(__FILE__), 'tests.json')))
+  end
   count = 1
   tests.each do |pattern|
     next unless pattern.is_a?(Array)
@@ -28,26 +34,68 @@ class JSONLogicTest < Minitest::Test
   def test_filter
     filter = JSON.parse(%Q|{">": [{"var": "id"}, 1]}|)
     data = JSON.parse(%Q|[{"id": 1},{"id": 2}]|)
-    assert_equal([{'id' => 2}], JSONLogic.filter(filter, data))
+
+    assert_equal([{ 'id' => 2 }], JSONLogic.filter(filter, data))
   end
 
   def test_symbol_operation
-    logic = {'==': [{var: "id"}, 1]}
+    logic = {'==': [{ var: "id" }, 1]}
     data = JSON.parse(%Q|{"id": 1}|)
-    assert_equal(true, JSONLogic.apply(logic, data))
+
+    assert JSONLogic.apply(logic, data)
   end
 
   def test_false_value
-    logic = {'==': [{var: "flag"}, false]}
+    logic = { '==': [{ var: "flag" }, false] }
     data = JSON.parse(%Q|{"flag": false}|)
+
+    assert JSONLogic.apply(logic, data)
+  end
+
+  def test_nil_var_not_equal_to_empty_string
+    logic = { '==': [{ var: "foo" }, ""] }
+    data = JSON.parse(%Q|{}|)
+    assert_equal(false, JSONLogic.apply(logic, data))
+  end
+
+  def test_nil_var_not_equal_to_zero
+    logic = { '==': [{ var: "foo" }, 0] }
+    data = JSON.parse(%Q|{}|)
+    assert_equal(false, JSONLogic.apply(logic, data))
+  end
+
+  def test_nil_var_equal_to_nil
+    logic = { '==': [{ var: "foo" }, nil] }
+    data = JSON.parse(%Q|{}|)
+    assert_equal(true, JSONLogic.apply(logic, data))
+  end
+
+  def test_nil_var_not_equal_via_not_equal_operator
+    logic = { '!=': [{ var: "foo" }, ""] }
+    data = JSON.parse(%Q|{}|)
+    assert_equal(true, JSONLogic.apply(logic, data))
+  end
+
+  def test_int_and_float_equal
+    logic = { '==': [{ var: "id" }, 1] }
+    data = JSON.parse(%Q|{"id": 1.0}|)
+    assert_equal(true, JSONLogic.apply(logic, data))
+  end
+
+  def test_number_and_numeric_string_equal
+    logic = { '==': [1, "1"] }
+    data = JSON.parse(%Q|{}|)
     assert_equal(true, JSONLogic.apply(logic, data))
   end
 
   def test_add_operation
-    new_operation = ->(v, d) { v.map { |x| x + 5 } }
-    JSONLogic.add_operation('fives', new_operation)
     rules = JSON.parse(%Q|{"fives": {"var": "num"}}|)
     data = JSON.parse(%Q|{"num": 1}|)
+    assert_raises(ArgumentError, "Unknown operator fives") do
+      JSONLogic.apply(rules, data)
+    end
+    new_operation = ->(v, d) { v.map { |x| x + 5 } }
+    JSONLogic.add_operation('fives', new_operation)
     assert_equal([6], JSONLogic.apply(rules, data))
   end
 
@@ -63,36 +111,36 @@ class JSONLogicTest < Minitest::Test
   end
 
   def test_array_with_logic
-    assert_equal [1, 2, 3], JSONLogic.apply([1, {"var" => "x"}, 3], {"x" => 2})
+    assert_equal [1, 2, 3], JSONLogic.apply([1, { "var" => "x" }, 3], { "x" => 2 })
 
     assert_equal [42], JSONLogic.apply(
       {
         "if" => [
-          {"var" => "x"},
-          [{"var" => "y"}],
+          { "var" => "x" },
+          [{ "var" => "y" }],
           99
         ]
       },
-      { "x" => true, "y" => 42}
+      { "x" => true, "y" => 42 }
     )
   end
 
   def test_in_with_variable
-    assert_equal true, JSONLogic.apply(
+    assert JSONLogic.apply(
       {
         "in" => [
-          {"var" => "x"},
-          {"var" => "x"}
+          { "var" => "x" },
+          { "var" => "x" }
         ]
       },
-      { "x" => "foo"}
+      { "x" => "foo" }
     )
 
-    assert_equal false, JSONLogic.apply(
+    refute JSONLogic.apply(
       {
         "in" => [
-          {"var" => "x"},
-          {"var" => "y"},
+          { "var" => "x" },
+          { "var" => "y" }
         ]
       },
       { "x" => "foo", "y" => "bar" }
@@ -100,7 +148,7 @@ class JSONLogicTest < Minitest::Test
   end
 
   def test_filter_with_non_array
-    assert_equal [], JSONLogic.apply(
+    assert_empty JSONLogic.apply(
       {
         "filter" => [
           { "var" => "x" },
@@ -115,8 +163,8 @@ class JSONLogicTest < Minitest::Test
     assert_equal ["x", "y"], JSONLogic.uses_data(
       {
         "in" => [
-          {"var" => "x"},
-          {"var" => "y"},
+          { "var" => "x" },
+          { "var" => "y" }
         ]
       }
     )
@@ -126,21 +174,39 @@ class JSONLogicTest < Minitest::Test
     vars = JSONLogic.uses_data(
       {
         "in" => [
-          {"var" => "x"},
-          {"var" => "y"},
+          { "var" => "x" },
+          { "var" => "y" }
         ]
       }
     )
 
-    provided_data_missing_y = {
-      x: 3,
-    }
+    provided_data_missing_y = { x: 3 }
+    provided_data_missing_x = { y: 4 }
 
-    provided_data_missing_x = {
-      y: 4,
-    }
+    assert_equal ["y"], JSONLogic.apply({ "missing": [vars] }, provided_data_missing_y)
+    assert_equal ["x"], JSONLogic.apply({ "missing": [vars] }, provided_data_missing_x)
+  end
 
-    assert_equal ["y"], JSONLogic.apply({"missing": [vars]}, provided_data_missing_y)
-    assert_equal ["x"], JSONLogic.apply({"missing": [vars]}, provided_data_missing_x)
+  def test_strict_equal_date_within_range
+    range = Date.parse('2024-01-01')..Date.parse('2024-12-31')
+    date = Date.parse('2024-07-22')
+
+    rule = { "===" => [{ "var" => "range" }, { "var" => "date" }] }
+    data = { "date" => date, "range" => range }
+
+    assert JSONLogic.apply(rule, data)
+    refute JSONLogic.apply(rule, data.merge("date" => Date.parse('2025-01-01')))
+  end
+
+  def test_strict_equal_still_strict_for_plain_values
+    refute JSONLogic.apply({ "===" => [1, "1"] }, {})
+    assert JSONLogic.apply({ "===" => [1, 1] }, {})
+  end
+
+  def test_in_with_non_array
+    logic = { "in" => ["searchable_elem", { "var" => "non_array" }] }
+
+    refute JSONLogic.apply(logic, { "non_array" => nil })
+    refute JSONLogic.apply(logic, nil)
   end
 end
