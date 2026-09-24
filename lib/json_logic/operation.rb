@@ -84,9 +84,9 @@ module JSONLogic
           return value if condition.truthy?
         end
       },
-      '=='    => ->(v, d) { v[0].to_s == v[1].to_s },
+      '=='    => ->(v, d) { loose_equal?(v[0], v[1]) },
       '==='   => ->(v, d) { v[0] == v[1] },
-      '!='    => ->(v, d) { v[0].to_s != v[1].to_s },
+      '!='    => ->(v, d) { !loose_equal?(v[0], v[1]) },
       '!=='   => ->(v, d) { v[0] != v[1] },
       '!'     => ->(v, d) { v[0].falsy? },
       '!!'    => ->(v, d) { v[0].truthy? },
@@ -137,6 +137,33 @@ module JSONLogic
 
     def self.is_standard?(operator)
       LAMBDAS.key?(operator.to_s)
+    end
+
+    # Loose ("soft") equality, mirroring JS `==` semantics per the JsonLogic spec.
+    # `nil` (e.g. from a `var` lookup on a missing key) only equals `nil`/`undefined`,
+    # never a coerced string/number, since `null == ""` and `null == 0` are both false in JS.
+    def self.loose_equal?(a, b)
+      return a.nil? && b.nil? if a.nil? || b.nil?
+
+      a = a ? 1 : 0 if [true, false].include?(a)
+      b = b ? 1 : 0 if [true, false].include?(b)
+
+      if a.is_a?(Numeric) || b.is_a?(Numeric)
+        af = numeric_value(a)
+        bf = numeric_value(b)
+        return false if af.nil? || bf.nil?
+        return af == bf
+      end
+
+      a.to_s == b.to_s
+    end
+
+    def self.numeric_value(value)
+      return value.to_f if value.is_a?(Numeric)
+      return nil unless value.is_a?(String)
+      return 0.0 if value.strip.empty?
+
+      Float(value) rescue nil
     end
 
     # Determine if values associated with operator need to be re-interpreted for each iteration(ie some kind of iterator)
