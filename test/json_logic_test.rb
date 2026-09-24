@@ -43,6 +43,42 @@ class JSONLogicTest < Minitest::Test
     assert_equal(true, JSONLogic.apply(logic, data))
   end
 
+  def test_nil_var_not_equal_to_empty_string
+    logic = { '==': [{ var: "foo" }, ""] }
+    data = JSON.parse(%Q|{}|)
+    assert_equal(false, JSONLogic.apply(logic, data))
+  end
+
+  def test_nil_var_not_equal_to_zero
+    logic = { '==': [{ var: "foo" }, 0] }
+    data = JSON.parse(%Q|{}|)
+    assert_equal(false, JSONLogic.apply(logic, data))
+  end
+
+  def test_nil_var_equal_to_nil
+    logic = { '==': [{ var: "foo" }, nil] }
+    data = JSON.parse(%Q|{}|)
+    assert_equal(true, JSONLogic.apply(logic, data))
+  end
+
+  def test_nil_var_not_equal_via_not_equal_operator
+    logic = { '!=': [{ var: "foo" }, ""] }
+    data = JSON.parse(%Q|{}|)
+    assert_equal(true, JSONLogic.apply(logic, data))
+  end
+
+  def test_int_and_float_equal
+    logic = { '==': [{ var: "id" }, 1] }
+    data = JSON.parse(%Q|{"id": 1.0}|)
+    assert_equal(true, JSONLogic.apply(logic, data))
+  end
+
+  def test_number_and_numeric_string_equal
+    logic = { '==': [1, "1"] }
+    data = JSON.parse(%Q|{}|)
+    assert_equal(true, JSONLogic.apply(logic, data))
+  end
+
   def test_add_operation
     new_operation = ->(v, d) { v.map { |x| x + 5 } }
     JSONLogic.add_operation('fives', new_operation)
