@@ -52,9 +52,10 @@ module JSONLogic
         end
       end,
       'reduce' => -> (v,d) do
-        return v[2] unless v[0].is_a?(Array)
+        initial = JSONLogic.apply(v[2], d)
+        return initial unless v[0].is_a?(Array)
 
-        v[0].inject(v[2]) do |acc, val|
+        v[0].inject(initial) do |acc, val|
           interpolated_block(v[1], { "current": val, "accumulator": acc })
         end
       end,
@@ -66,10 +67,16 @@ module JSONLogic
         end
       end,
       'if' => ->(v, d) do
-        v.each_slice(2) do |condition, value|
-          return condition if value.nil?
-          return value if condition.truthy?
+        v.each_slice(2) do |condition_and_value|
+          # A trailing single-element slice is the final "else" value.
+          if condition_and_value.size == 1
+            return condition_and_value.first
+          else
+            condition, value = condition_and_value
+            return value if condition.truthy?
+          end
         end
+        nil
       end,
       '=='    => ->(v, d) { loose_equal?(v[0], v[1]) },
       '==='   => ->(v, d) { v[0] == v[1] },

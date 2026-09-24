@@ -9,8 +9,8 @@ require 'json_logic'
 class JSONLogicTest < Minitest::Test
   test_suite_url = 'https://jsonlogic.com/tests.json'
   tests = begin
-    JSON.parse(open(test_suite_url).read)
-  rescue Errno::ENOENT
+    JSON.parse(URI.open(test_suite_url).read)
+  rescue Errno::ENOENT, OpenURI::HTTPError
     # Run a cached copy of the test suite if we can't reach the canonical version
     JSON.parse(File.read(File.join(File.dirname(__FILE__), 'tests.json')))
   end
