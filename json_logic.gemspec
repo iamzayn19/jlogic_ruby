@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'json_logic/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'json-logic-ruby'
+  spec.name          = 'jlogic_ruby'
   spec.version       = JSONLogic::VERSION
   spec.authors       = ['Kenneth Geerts', 'Jordan Prince', 'iamzayn19']
   spec.email         = ['Kenneth.Geerts@gmail.com', 'jordanmprince@gmail.com', 'iamzayn19@gmail.com']

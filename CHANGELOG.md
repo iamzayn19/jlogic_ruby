@@ -2,7 +2,7 @@
 
 ## 0.5.0
 
-Maintained fork of [bhgames/json-logic-ruby](https://github.com/bhgames/json-logic-ruby), published as `json-logic-ruby` since the `json_logic` gem name is owned by the upstream project.
+Maintained fork of [bhgames/json-logic-ruby](https://github.com/bhgames/json-logic-ruby), published as `jlogic_ruby` since `json_logic`, `json_logic_ruby`, and similar names are already taken/reserved on RubyGems.
 
 - Fix `==`/`!=` treating a missing/nil `var` lookup as equal to `""`, `0`, or `false` (rewrote as proper loose equality per the JsonLogic spec)
 - Fix `reduce` not resolving a logic expression (e.g. `{"var": "..."}`) passed as the initial accumulator value
