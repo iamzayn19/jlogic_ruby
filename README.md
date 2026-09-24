@@ -1,10 +1,10 @@
-# json-logic-ruby [![Build Status](https://travis-ci.org/bhgames/json-logic-ruby.svg?branch=master)](https://travis-ci.org/bhgames/json-logic-ruby)
+# jlogic_ruby
 
-> **This is a maintained fork** of [bhgames/json-logic-ruby](https://github.com/bhgames/json-logic-ruby), published as the [`jlogic_ruby`](https://rubygems.org/gems/jlogic_ruby) gem (the `json_logic` name is owned by the upstream project). It fixes several correctness bugs — `==`/`!=` nil handling, `if`, `reduce`, `in`, `===` range matching, and a global core-class monkey-patch — see [CHANGELOG.md](CHANGELOG.md) for details. Verified against the full official [jsonlogic.com test suite](http://jsonlogic.com/tests.json) (297/297 passing).
+> **This is a maintained fork** of [bhgames/json-logic-ruby](https://github.com/bhgames/json-logic-ruby), published as the [`jlogic_ruby`](https://rubygems.org/gems/jlogic_ruby) gem (the `json_logic` name is owned by the upstream project). Most of these fixes have since been merged upstream too — thanks @bhgames — this fork stays around for the couple still pending and for the `jlogic_ruby` gem name itself. Fixes: `==`/`!=` nil handling, `if`, `reduce`, `in`, `===` range matching, and a global core-class monkey-patch — see [CHANGELOG.md](CHANGELOG.md) for details. Verified against the full official [jsonlogic.com test suite](http://jsonlogic.com/tests.json) (297/297 passing).
 
 Build complex rules, serialize them as JSON, and execute them in ruby.
 
-**json-logic-ruby** is a ruby parser for [JsonLogic](http://jsonlogic.com). Other libraries are available for parsing this logic for Python and JavaScript at that link!
+**jlogic_ruby** is a ruby parser for [JsonLogic](http://jsonlogic.com). Other libraries are available for parsing this logic for Python and JavaScript at that link!
 
 ## DANGER WILL ROBINSON!
 
