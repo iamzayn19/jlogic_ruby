@@ -5,9 +5,7 @@ require 'json_logic/operation'
 module JSONLogic
   def self.apply(logic, data)
     if logic.is_a?(Array)
-      logic.map do |val|
-        apply(val, data)
-      end
+      logic.map { |val| apply(val, data) }
     elsif !logic.is_a?(Hash)
       # Pass-thru
       logic
